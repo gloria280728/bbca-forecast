@@ -1,12 +1,12 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 streamlit
-pandas
-numpy
 requests
 plotly
+
+numpy<2
+pandas==1.5.3
 
 torch
 pytorch-lightning
 pytorch-forecasting
-scikit-learn
