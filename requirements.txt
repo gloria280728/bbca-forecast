@@ -1,0 +1,10 @@
+streamlit>=1.41
+numpy
+pandas
+requests
+plotly
+
+torch==2.6.0
+pytorch-lightning==2.4.0
+pytorch-forecasting==1.1.0
+scikit-learn
