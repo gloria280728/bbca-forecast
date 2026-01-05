@@ -8,7 +8,7 @@ import requests
 import sys
 import types
 
-
+from pytorch_forecasting.data.encoders import GroupNormalizer
 from pytorch_forecasting import TemporalFusionTransformer
 from pytorch_forecasting.data import TimeSeriesDataSet
 
@@ -495,6 +495,28 @@ def load_model_and_params():
     
     with open(PARAMS_PATH, "rb") as f:
         params = pickle.load(f)
+        # --- PATCH: compat for pickled GroupNormalizer across pytorch-forecasting versions ---
+        tn = params.get("target_normalizer", None)
+        
+        # target_normalizer kadang ke-pickle sebagai instance GroupNormalizer
+        if isinstance(tn, GroupNormalizer) and not hasattr(tn, "_groups"):
+            # coba ambil dari atribut yang mungkin ada di versi lain
+            if hasattr(tn, "groups") and tn.groups is not None:
+                try:
+                    tn._groups = list(tn.groups)
+                except Exception:
+                    tn._groups = [tn.groups]
+            elif hasattr(tn, "group_ids") and tn.group_ids is not None:
+                try:
+                    tn._groups = list(tn.group_ids)
+                except Exception:
+                    tn._groups = [tn.group_ids]
+            else:
+                # fallback minimal: group_id kamu memang satu
+                tn._groups = ["group_id"]
+        
+            params["target_normalizer"] = tn
+        # -------------------------------------------------------------------------------
 
 
     # ✅ bypass PyTorch 2.6 weights_only default
