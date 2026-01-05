@@ -1,10 +1,12 @@
-streamlit>=1.41
-numpy
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+streamlit
 pandas
+numpy
 requests
 plotly
 
-torch==2.6.0
-pytorch-lightning==2.4.0
-pytorch-forecasting==1.1.0
+torch
+pytorch-lightning
+pytorch-forecasting
 scikit-learn
