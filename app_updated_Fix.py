@@ -5,6 +5,9 @@ import pandas as pd
 import streamlit as st
 import torch
 import requests
+import sys
+import types
+
 
 from pytorch_forecasting import TemporalFusionTransformer
 from pytorch_forecasting.data import TimeSeriesDataSet
@@ -476,9 +479,23 @@ def load_model_and_params():
     if not os.path.exists(PARAMS_PATH):
         raise FileNotFoundError(f"Params tidak ketemu: {PARAMS_PATH}")
 
-    # params kamu bener: pickle.dump -> pickle.load
+    # --- PATCH: allow loading pickles created with older pandas internals ---
+    if "pandas.core.indexes.numeric" not in sys.modules:
+        numeric_mod = types.ModuleType("pandas.core.indexes.numeric")
+    
+        # Old pandas used these names; map them to current Index implementations.
+        # This is enough for most pickled artifacts that contain Index objects.
+        numeric_mod.NumericIndex = pd.Index
+        numeric_mod.Int64Index = pd.Index
+        numeric_mod.UInt64Index = pd.Index
+        numeric_mod.Float64Index = pd.Index
+    
+        sys.modules["pandas.core.indexes.numeric"] = numeric_mod
+    # -----------------------------------------------------------------------
+    
     with open(PARAMS_PATH, "rb") as f:
         params = pickle.load(f)
+
 
     # ✅ bypass PyTorch 2.6 weights_only default
     ckpt = torch.load(CKPT_PATH, map_location="cpu", weights_only=False)
